@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <title>Image Converter</title>
+</head>
+<body>
+    <h1>Image Converter</h1>
+
+    <form id="form" onsubmit="submitForm(event);">
+        <label for="image">Choose Image:</label>
+        <input style="padding-bottom: 10px;" type="file" name="image" accept="image/*" required>
+
+        <label for="format">Choose Format:</label>
+        <select name="format" id="format" required>
+            <option value="jpg">JPEG</option>
+            <option value="png">PNG</option>
+            <option value="tiff">TIFF</option>
+            <option value="gif">GIF</option>
+            <option value="bmp">BMP</option>
+            <option value="pdf">PDF</option>
+            <!-- Добавьте другие форматы по необходимости -->
+        </select>
+
+        <button type="submit">Convert</button>
+    </form>
+
+    <div id="download-link" style="display: none;">
+        <p>Image converted successfully!</p>
+        <a id="download-button" download>Download Converted Image</a>
+    </div>
+
+    <script>
+        async function submitForm(event) {
+        // Отменяем стандартное поведение формы (переход по URL)
+        event.preventDefault();
+
+        // Получаем форму и ее элементы
+        var form = document.getElementById('form');
+        var format = form.querySelector("#format").value;
+        var image = form.querySelector("input[name='image']").files[0];
+
+        // Создаем FormData объект и добавляем в него данные формы
+        var formData = new FormData();
+        formData.append("image", image);
+        formData.append("format", format);
+
+        try {
+            // Отправляем запрос на сервер с использованием Fetch API
+            var response = await fetch("/api/convert", {
+                method: "POST",
+                body: formData,
+            });
+
+            // Проверяем успешность запроса
+            if (response.ok) {
+                // Парсим JSON ответа
+                var result = await response.json();
+
+                // Отображаем ссылку для скачивания и скрываем форму
+                var downloadLink = document.getElementById('download-link');
+                var downloadButton = document.getElementById('download-button');
+                downloadLink.style.display = 'block';
+                downloadButton.href = result.result;
+            } else {
+                // Обрабатываем ошибку
+                console.error("Failed to convert image:", response.statusText);
+            }
+        } catch (error) {
+            console.error("An error occurred:", error);
+        }
+    }
+    </script>
+</body>
+</html>
